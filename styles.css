@@ -355,6 +355,12 @@ textarea {
   gap: 10px;
 }
 
+.history-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .correlation-list,
 .history-list {
   display: grid;

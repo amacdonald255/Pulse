@@ -142,6 +142,19 @@
     </article>
   </template>
 
+  <template id="historyItemTemplate">
+    <article class="history-item">
+      <div>
+        <h3 class="history-title"></h3>
+        <p class="history-time"></p>
+      </div>
+      <div class="history-actions">
+        <strong class="history-value">+1</strong>
+        <button class="button button-ghost delete-history-button" type="button">Delete</button>
+      </div>
+    </article>
+  </template>
+
   <script src="app.js"></script>
   <script>
     if ("serviceWorker" in navigator) {

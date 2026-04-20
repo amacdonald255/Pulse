@@ -41,6 +41,7 @@ const dailySurveyForm = document.querySelector("#dailySurveyForm");
 const surveyCategoryForm = document.querySelector("#surveyCategoryForm");
 const surveyCategoryList = document.querySelector("#surveyCategoryList");
 const habitCardTemplate = document.querySelector("#habitCardTemplate");
+const historyItemTemplate = document.querySelector("#historyItemTemplate");
 const habitIdInput = document.querySelector("#habitId");
 const habitSubmitButton = document.querySelector("#habitSubmitButton");
 const surveyCategoryIdInput = document.querySelector("#surveyCategoryId");
@@ -349,7 +350,9 @@ function renderHistory() {
     return;
   }
 
-  historyList.innerHTML = recentLogs.map((log) => {
+  historyList.innerHTML = "";
+
+  recentLogs.forEach((log) => {
     const habit = state.habits.find((entry) => entry.id === log.habitId);
     const time = new Date(log.timestamp).toLocaleString([], {
       month: "short",
@@ -358,16 +361,19 @@ function renderHistory() {
       minute: "2-digit"
     });
 
-    return `
-      <article class="history-item">
-        <div>
-          <h3>${habit?.name || "Deleted habit"}</h3>
-          <p class="history-time">${time}</p>
-        </div>
-        <strong>+1</strong>
-      </article>
-    `;
-  }).join("");
+    const node = historyItemTemplate.content.firstElementChild.cloneNode(true);
+    node.querySelector(".history-title").textContent = habit?.name || "Deleted habit";
+    node.querySelector(".history-time").textContent = time;
+    node.querySelector(".delete-history-button").addEventListener("click", () => {
+      deleteHistoryEntry(log.id);
+    });
+    historyList.appendChild(node);
+  });
+}
+
+function deleteHistoryEntry(logId) {
+  state.habitLogs = state.habitLogs.filter((entry) => entry.id !== logId);
+  saveAndRender();
 }
 
 function buildCorrelations() {
