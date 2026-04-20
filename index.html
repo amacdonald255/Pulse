@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulse Habit Tracker</title>
+  <meta name="theme-color" content="#d95d39">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Pulse Habit">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Habit tracking with context</p>
+        <h1>Pulse Habit Tracker</h1>
+        <p class="hero-copy">
+          Track repeatable habits, run daily check-ins, and spot connections between what you do and how you feel.
+        </p>
+      </div>
+      <div class="hero-card">
+        <p class="hero-card-label">Today</p>
+        <div id="todaySnapshot" class="hero-card-stats"></div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel panel-wide">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">Daily action</p>
+            <h2>Habits</h2>
+          </div>
+          <button id="openHabitForm" class="button button-primary" type="button">Create Habit</button>
+        </div>
+
+        <form id="habitForm" class="inline-form hidden">
+          <input id="habitId" name="habitId" type="hidden">
+          <div class="form-grid">
+            <label>
+              Habit name
+              <input id="habitName" name="habitName" type="text" placeholder="Drink water" required>
+            </label>
+            <label>
+              Goal per day
+              <input id="habitGoal" name="habitGoal" type="number" min="1" value="8" required>
+            </label>
+            <label>
+              Unit
+              <input id="habitUnit" name="habitUnit" type="text" placeholder="glasses" required>
+            </label>
+            <label>
+              Color
+              <input id="habitColor" name="habitColor" type="color" value="#ff7a59">
+            </label>
+          </div>
+          <div class="form-actions">
+            <button id="habitSubmitButton" class="button button-primary" type="submit">Save Habit</button>
+            <button id="cancelHabitForm" class="button button-secondary" type="button">Cancel</button>
+          </div>
+        </form>
+
+        <div id="habitList" class="card-grid"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">Reflect daily</p>
+            <h2>Survey</h2>
+          </div>
+          <button id="openSurveyCategoryForm" class="button button-secondary" type="button">Edit Categories</button>
+        </div>
+
+        <form id="surveyCategoryForm" class="inline-form hidden">
+          <input id="surveyCategoryId" name="surveyCategoryId" type="hidden">
+          <div class="form-grid form-grid-compact">
+            <label>
+              Category name
+              <input id="surveyCategoryName" name="surveyCategoryName" type="text" placeholder="Alertness">
+            </label>
+          </div>
+          <div class="form-actions">
+            <button id="surveyCategorySubmitButton" class="button button-primary" type="submit">Add Category</button>
+            <button id="cancelSurveyCategoryForm" class="button button-secondary" type="button">Close</button>
+          </div>
+          <div id="surveyCategoryList" class="chip-row"></div>
+        </form>
+
+        <form id="dailySurveyForm" class="survey-form"></form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">Pattern finder</p>
+            <h2>Correlations</h2>
+          </div>
+        </div>
+        <div id="correlationList" class="correlation-list"></div>
+      </section>
+
+      <section class="panel panel-wide">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">Recent activity</p>
+            <h2>History</h2>
+          </div>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <template id="habitCardTemplate">
+    <article class="habit-card">
+      <div class="habit-card-top">
+        <div>
+          <h3 class="habit-title"></h3>
+          <p class="habit-meta"></p>
+        </div>
+        <div class="card-actions">
+          <button class="button button-ghost edit-habit-button" type="button">Edit</button>
+          <button class="button button-ghost delete-habit-button" type="button">Delete</button>
+        </div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-track">
+          <div class="progress-fill"></div>
+        </div>
+        <p class="progress-text"></p>
+      </div>
+      <div class="habit-actions">
+        <button class="button button-primary log-habit-button" type="button">Log one</button>
+      </div>
+    </article>
+  </template>
+
+  <template id="historyItemTemplate">
+    <article class="history-item">
+      <div>
+        <h3 class="history-title"></h3>
+        <p class="history-time"></p>
+      </div>
+      <div class="history-actions">
+        <strong class="history-value">+1</strong>
+        <button class="button button-ghost delete-history-button" type="button">Delete</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch((error) => {
+          console.error("Service worker registration failed", error);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
