@@ -13,7 +13,7 @@ import {
   serverTimestamp,
   setDoc
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-import { firebaseConfig, hasFirebaseConfig } from "./firebase-config.js";
+import { firebaseConfig, hasFirebaseConfig } from "./firebase-config.js?v=2026-04-21-2";
 
 const STORAGE_KEY = "pulse-habit-tracker-state";
 const FIREBASE_CONFIGURED = hasFirebaseConfig();
