@@ -99,7 +99,7 @@ async function handleAuth(mode) {
   const password = document.querySelector("#loginPassword").value;
 
   if (!FIREBASE_CONFIGURED || !auth) {
-    loginError.textContent = "Firebase is not configured yet. Add your project settings first.";
+    loginError.textContent = "Account creation is not active yet. Firebase still needs your project settings in firebase-config.js.";
     return;
   }
 
