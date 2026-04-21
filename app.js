@@ -1,5 +1,29 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  serverTimestamp,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import { firebaseConfig, hasFirebaseConfig } from "./firebase-config.js";
+
 const STORAGE_KEY = "pulse-habit-tracker-state";
-const AUTH_KEY = "pulse-habit-tracker-auth";
+const FIREBASE_CONFIGURED = hasFirebaseConfig();
+const firebaseApp = FIREBASE_CONFIGURED ? initializeApp(firebaseConfig) : null;
+const auth = firebaseApp ? getAuth(firebaseApp) : null;
+const db = firebaseApp ? getFirestore(firebaseApp) : null;
+
+let currentUser = null;
+let isCloudReady = false;
+let isLoadingCloudState = false;
 
 function createId() {
   if (window.crypto && typeof window.crypto.randomUUID === "function") {
@@ -36,6 +60,8 @@ let state = loadState();
 const loginScreen = document.querySelector("#loginScreen");
 const loginForm = document.querySelector("#loginForm");
 const loginError = document.querySelector("#loginError");
+const firebaseSetupNotice = document.querySelector("#firebaseSetupNotice");
+const createAccountButton = document.querySelector("#createAccountButton");
 const appShell = document.querySelector("#appShell");
 const logoutButton = document.querySelector("#logoutButton");
 const exportDataButton = document.querySelector("#exportDataButton");
@@ -55,31 +81,50 @@ const habitSubmitButton = document.querySelector("#habitSubmitButton");
 const surveyCategoryIdInput = document.querySelector("#surveyCategoryId");
 const surveyCategorySubmitButton = document.querySelector("#surveyCategorySubmitButton");
 
-loginForm.addEventListener("submit", (event) => {
-  event.preventDefault();
+if (!FIREBASE_CONFIGURED) {
+  firebaseSetupNotice.classList.remove("hidden");
+}
 
+loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  await handleAuth("login");
+});
+
+createAccountButton.addEventListener("click", async () => {
+  await handleAuth("create");
+});
+
+async function handleAuth(mode) {
   const email = document.querySelector("#loginEmail").value.trim();
   const password = document.querySelector("#loginPassword").value;
+
+  if (!FIREBASE_CONFIGURED || !auth) {
+    loginError.textContent = "Firebase is not configured yet. Add your project settings first.";
+    return;
+  }
 
   if (!email || !password) {
     loginError.textContent = "Enter an email and password to continue.";
     return;
   }
 
-  localStorage.setItem(AUTH_KEY, JSON.stringify({
-    email,
-    signedInAt: new Date().toISOString()
-  }));
-  loginForm.reset();
   loginError.textContent = "";
-  showApp();
-});
 
-logoutButton.addEventListener("click", () => {
-  localStorage.removeItem(AUTH_KEY);
-  appShell.classList.add("hidden");
-  loginScreen.classList.remove("hidden");
-  document.querySelector("#loginEmail").focus();
+  try {
+    if (mode === "create") {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+    }
+  } catch (error) {
+    loginError.textContent = getAuthErrorMessage(error);
+  }
+}
+
+logoutButton.addEventListener("click", async () => {
+  if (auth) {
+    await signOut(auth);
+  }
 });
 
 exportDataButton.addEventListener("click", () => {
@@ -248,7 +293,24 @@ function loadState() {
 
 function saveAndRender() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  saveCloudState();
   render();
+}
+
+async function saveCloudState() {
+  if (!isCloudReady || isLoadingCloudState || !currentUser || !db) {
+    return;
+  }
+
+  try {
+    await setDoc(doc(db, "users", currentUser.uid), {
+      email: currentUser.email,
+      state,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (error) {
+    console.error("Cloud save failed", error);
+  }
 }
 
 function normalizeState(value) {
@@ -268,10 +330,6 @@ function render() {
   renderSurveyCategories();
   renderCorrelations();
   renderHistory();
-}
-
-function isLoggedIn() {
-  return Boolean(localStorage.getItem(AUTH_KEY));
 }
 
 function showApp() {
@@ -588,9 +646,75 @@ function getLocalDateKey(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
-if (isLoggedIn()) {
-  showApp();
-} else {
-  loginScreen.classList.remove("hidden");
+function showLogin() {
+  currentUser = null;
+  isCloudReady = false;
   appShell.classList.add("hidden");
+  loginScreen.classList.remove("hidden");
+}
+
+function getAuthErrorMessage(error) {
+  if (error?.code === "auth/invalid-credential") {
+    return "The email or password is incorrect.";
+  }
+
+  if (error?.code === "auth/email-already-in-use") {
+    return "That email already has an account. Try logging in instead.";
+  }
+
+  if (error?.code === "auth/weak-password") {
+    return "Firebase requires passwords to be at least 6 characters.";
+  }
+
+  if (error?.code === "auth/invalid-email") {
+    return "Enter a valid email address.";
+  }
+
+  return "Something went wrong. Please try again.";
+}
+
+async function loadCloudState(user) {
+  if (!db) {
+    return;
+  }
+
+  isLoadingCloudState = true;
+
+  try {
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (userDoc.exists() && userDoc.data()?.state) {
+      state = normalizeState(userDoc.data().state);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } else {
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        state,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    }
+  } catch (error) {
+    console.error("Cloud load failed", error);
+    loginError.textContent = "Could not load your saved account data.";
+  } finally {
+    isLoadingCloudState = false;
+  }
+}
+
+if (auth) {
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      showLogin();
+      return;
+    }
+
+    currentUser = user;
+    await loadCloudState(user);
+    isCloudReady = true;
+    loginForm.reset();
+    loginError.textContent = "";
+    showApp();
+  });
+} else {
+  showLogin();
 }

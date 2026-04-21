@@ -65,17 +65,30 @@ textarea {
   margin: 0 0 6px;
 }
 
+.login-actions {
+  display: grid;
+  gap: 10px;
+}
+
 .login-button {
   width: 100%;
   justify-content: center;
 }
 
 .login-note,
-.form-error {
+.form-error,
+.setup-notice {
   margin: 0;
   color: var(--muted);
   font-size: 0.92rem;
   line-height: 1.5;
+}
+
+.setup-notice {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(217, 93, 57, 0.12);
+  color: var(--accent-dark);
 }
 
 .form-error:not(:empty) {
