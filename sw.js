@@ -1,4 +1,4 @@
-const CACHE_NAME = "pulse-habit-tracker-v1";
+const CACHE_NAME = "pulse-habit-tracker-v2";
 const APP_SHELL = [
   "./",
   "./index.html",

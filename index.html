@@ -15,7 +15,30 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="page-shell">
+  <section id="loginScreen" class="login-screen">
+    <form id="loginForm" class="login-card">
+      <p class="eyebrow">Private habit dashboard</p>
+      <h1>Welcome Back</h1>
+      <p class="hero-copy">
+        Sign in with an email and password to open your habit tracker.
+      </p>
+      <label>
+        Email
+        <input id="loginEmail" name="loginEmail" type="email" autocomplete="email" placeholder="you@example.com" required>
+      </label>
+      <label>
+        Password
+        <input id="loginPassword" name="loginPassword" type="password" autocomplete="current-password" placeholder="Enter any password" required>
+      </label>
+      <p id="loginError" class="form-error" role="alert"></p>
+      <button class="button button-primary login-button" type="submit">Log In</button>
+      <p class="login-note">
+        This app runs as a static website, so this login only protects the app on this device. It does not create a server account.
+      </p>
+    </form>
+  </section>
+
+  <div id="appShell" class="page-shell hidden">
     <header class="hero">
       <div>
         <p class="eyebrow">Habit tracking with context</p>
@@ -25,7 +48,10 @@
         </p>
       </div>
       <div class="hero-card">
-        <p class="hero-card-label">Today</p>
+        <div class="hero-card-header">
+          <p class="hero-card-label">Today</p>
+          <button id="logoutButton" class="button button-ghost" type="button">Log Out</button>
+        </div>
         <div id="todaySnapshot" class="hero-card-stats"></div>
       </div>
     </header>

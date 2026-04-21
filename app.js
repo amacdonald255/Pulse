@@ -1,4 +1,5 @@
 const STORAGE_KEY = "pulse-habit-tracker-state";
+const AUTH_KEY = "pulse-habit-tracker-auth";
 
 function createId() {
   if (window.crypto && typeof window.crypto.randomUUID === "function") {
@@ -32,6 +33,11 @@ const defaultState = {
 
 let state = loadState();
 
+const loginScreen = document.querySelector("#loginScreen");
+const loginForm = document.querySelector("#loginForm");
+const loginError = document.querySelector("#loginError");
+const appShell = document.querySelector("#appShell");
+const logoutButton = document.querySelector("#logoutButton");
 const habitForm = document.querySelector("#habitForm");
 const habitList = document.querySelector("#habitList");
 const todaySnapshot = document.querySelector("#todaySnapshot");
@@ -46,6 +52,33 @@ const habitIdInput = document.querySelector("#habitId");
 const habitSubmitButton = document.querySelector("#habitSubmitButton");
 const surveyCategoryIdInput = document.querySelector("#surveyCategoryId");
 const surveyCategorySubmitButton = document.querySelector("#surveyCategorySubmitButton");
+
+loginForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const email = document.querySelector("#loginEmail").value.trim();
+  const password = document.querySelector("#loginPassword").value;
+
+  if (!email || !password) {
+    loginError.textContent = "Enter an email and password to continue.";
+    return;
+  }
+
+  localStorage.setItem(AUTH_KEY, JSON.stringify({
+    email,
+    signedInAt: new Date().toISOString()
+  }));
+  loginForm.reset();
+  loginError.textContent = "";
+  showApp();
+});
+
+logoutButton.addEventListener("click", () => {
+  localStorage.removeItem(AUTH_KEY);
+  appShell.classList.add("hidden");
+  loginScreen.classList.remove("hidden");
+  document.querySelector("#loginEmail").focus();
+});
 
 document.querySelector("#openHabitForm").addEventListener("click", () => {
   resetHabitForm();
@@ -183,6 +216,16 @@ function render() {
   renderSurveyCategories();
   renderCorrelations();
   renderHistory();
+}
+
+function isLoggedIn() {
+  return Boolean(localStorage.getItem(AUTH_KEY));
+}
+
+function showApp() {
+  loginScreen.classList.add("hidden");
+  appShell.classList.remove("hidden");
+  render();
 }
 
 function renderSnapshot() {
@@ -493,4 +536,9 @@ function getLocalDateKey(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
-render();
+if (isLoggedIn()) {
+  showApp();
+} else {
+  loginScreen.classList.remove("hidden");
+  appShell.classList.add("hidden");
+}
