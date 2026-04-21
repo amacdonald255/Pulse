@@ -1,10 +1,10 @@
 export const firebaseConfig = {
-  apiKey: "PASTE_FIREBASE_API_KEY_HERE",
-  authDomain: "PASTE_FIREBASE_AUTH_DOMAIN_HERE",
-  projectId: "PASTE_FIREBASE_PROJECT_ID_HERE",
-  storageBucket: "PASTE_FIREBASE_STORAGE_BUCKET_HERE",
-  messagingSenderId: "PASTE_FIREBASE_MESSAGING_SENDER_ID_HERE",
-  appId: "PASTE_FIREBASE_APP_ID_HERE"
+  apiKey: "AIzaSyBRugmltqow09PUx0rp1rDJ1s10hk4oI8",
+  authDomain: "pulse-5a59e.firebaseapp.com",
+  projectId: "pulse-5a59e",
+  storageBucket: "pulse-5a59e.firebasestorage.app",
+  messagingSenderId: "370257215223",
+  appId: "1:370257215223:web:1e4194026ad3bd24529df2"
 };
 
 export function hasFirebaseConfig() {
