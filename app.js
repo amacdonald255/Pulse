@@ -38,6 +38,8 @@ const loginForm = document.querySelector("#loginForm");
 const loginError = document.querySelector("#loginError");
 const appShell = document.querySelector("#appShell");
 const logoutButton = document.querySelector("#logoutButton");
+const exportDataButton = document.querySelector("#exportDataButton");
+const importDataInput = document.querySelector("#importDataInput");
 const habitForm = document.querySelector("#habitForm");
 const habitList = document.querySelector("#habitList");
 const todaySnapshot = document.querySelector("#todaySnapshot");
@@ -78,6 +80,49 @@ logoutButton.addEventListener("click", () => {
   appShell.classList.add("hidden");
   loginScreen.classList.remove("hidden");
   document.querySelector("#loginEmail").focus();
+});
+
+exportDataButton.addEventListener("click", () => {
+  const backup = {
+    app: "Pulse Habit Tracker",
+    exportedAt: new Date().toISOString(),
+    state
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {
+    type: "application/json"
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `pulse-habit-backup-${getLocalDateKey()}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+});
+
+importDataInput.addEventListener("change", () => {
+  const file = importDataInput.files?.[0];
+  if (!file) {
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      const backup = JSON.parse(String(reader.result || "{}"));
+      const importedState = backup.state || backup;
+      state = normalizeState(importedState);
+      saveAndRender();
+      alert("Backup imported successfully.");
+    } catch (error) {
+      alert("That backup file could not be imported.");
+      console.error("Backup import failed", error);
+    } finally {
+      importDataInput.value = "";
+    }
+  });
+  reader.readAsText(file);
 });
 
 document.querySelector("#openHabitForm").addEventListener("click", () => {
@@ -189,24 +234,31 @@ dailySurveyForm.addEventListener("submit", (event) => {
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) {
-    return cloneValue(defaultState);
+    return normalizeState(defaultState);
   }
 
   try {
     const parsed = JSON.parse(saved);
-    return {
-      ...cloneValue(defaultState),
-      ...parsed
-    };
+    return normalizeState(parsed);
   } catch (error) {
     console.error("Failed to load saved state", error);
-    return cloneValue(defaultState);
+    return normalizeState(defaultState);
   }
 }
 
 function saveAndRender() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   render();
+}
+
+function normalizeState(value) {
+  const fallback = cloneValue(defaultState);
+  return {
+    habits: Array.isArray(value?.habits) ? value.habits : fallback.habits,
+    surveyCategories: Array.isArray(value?.surveyCategories) ? value.surveyCategories : fallback.surveyCategories,
+    habitLogs: Array.isArray(value?.habitLogs) ? value.habitLogs : fallback.habitLogs,
+    surveyEntries: value?.surveyEntries && typeof value.surveyEntries === "object" ? value.surveyEntries : fallback.surveyEntries
+  };
 }
 
 function render() {

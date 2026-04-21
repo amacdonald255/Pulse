@@ -157,6 +157,23 @@ h2 {
   gap: 14px;
 }
 
+.data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.import-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.import-button input {
+  display: none;
+}
+
 .snapshot-row {
   display: flex;
   justify-content: space-between;
