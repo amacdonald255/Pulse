@@ -654,6 +654,24 @@ function showLogin() {
 }
 
 function getAuthErrorMessage(error) {
+  console.error("Firebase authentication failed", error);
+
+  if (error?.code === "auth/operation-not-allowed") {
+    return "Email/password sign-in is not enabled in Firebase Authentication yet.";
+  }
+
+  if (error?.code === "auth/unauthorized-domain") {
+    return "This website domain is not authorized in Firebase Authentication yet.";
+  }
+
+  if (error?.code === "auth/configuration-not-found") {
+    return "Firebase Authentication is not fully set up for this project yet.";
+  }
+
+  if (error?.code === "auth/network-request-failed") {
+    return "Firebase could not be reached. Check your internet connection and try again.";
+  }
+
   if (error?.code === "auth/invalid-credential") {
     return "The email or password is incorrect.";
   }
@@ -670,7 +688,7 @@ function getAuthErrorMessage(error) {
     return "Enter a valid email address.";
   }
 
-  return "Something went wrong. Please try again.";
+  return `Something went wrong. Firebase said: ${error?.code || "unknown error"}.`;
 }
 
 async function loadCloudState(user) {
